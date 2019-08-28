@@ -8,6 +8,7 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #warning-ignore:unused_argument
 func _process(delta:float):
+	# print($TileMap.get_cellv(Vector2(0, 0)))
 	if Input.is_action_pressed("jump"):
 		$TileMap/Player.jump()
 	if Input.is_action_pressed("move_left"):
