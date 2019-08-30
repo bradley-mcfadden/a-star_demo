@@ -4,7 +4,8 @@ extends Node
 func _ready():
 	pass
 
-
+func _input(event:InputEvent):
+	pass
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #warning-ignore:unused_argument
 func _process(delta:float):
