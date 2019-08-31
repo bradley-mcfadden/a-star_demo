@@ -1,36 +1,49 @@
 extends Node2D
 const MAX_JUMP = 8
+
+
 export var WIDTH := 3
 export var HEIGHT := 3
-export var START:Vector2
-export var GOAL:Vector2
-onready var path:Array = []
-func _ready():
-	randomize()
-	var pf = PathFinder.new(get_parent(), START, GOAL, WIDTH, HEIGHT)
+export var start:Vector2
+export var goal:Vector2
+onready var path:Array
+
+
+func find_path():
+	path = []
+	var pf = PathFinder.new(get_parent(), start, goal, WIDTH, HEIGHT)
 	var next_step:PathFinderNode = pf.goal
 	path.append(pf.goal)
+	if pf.success == false:
+		update()
+		return
 	while next_step.xy != -1:
 		path.append(next_step)
 		next_step = pf.came_from[next_step.xy][next_step.jump_value]
 	for i in range(1, path.size()):
 		print(path[path.size()-i].to_string())
 	update()
+
+
 func _draw():
 	for i in range(0, path.size() - 1):
 		draw_line(Vector2(16, 16) + Vector2(path[i].xy % WIDTH, path[i].xy / WIDTH) * 32, Vector2(16, 16) + Vector2(path[i+1].xy % WIDTH, path[i+1].xy / WIDTH) * 32, Color(0, 0, 0))
+
 
 class PriorityQueue:
 	var data:Array
 	var priority:Array
 	
+	
 	func _init():
 		data = []
 		priority = []
 	
+	
 	func add(a, p:int):
 		data.push_front(a)
 		priority.push_front(p)
+	
 	
 	func poll():
 		assert data.size() > 0
@@ -40,11 +53,13 @@ class PriorityQueue:
 		priority.remove(remove)
 		return polled
 	
+	
 	func peek():
 		assert data.size() > 0
 		var remove:int = priority.find(priority.min())
 		var polled = data[remove]
 		return polled
+	
 	
 class PathFinderNode:
 	var xy:int
@@ -59,12 +74,15 @@ class PathFinderNode:
 	func to_string() -> String:
 		return "XY: " + str(xy) + " Jump Value:" + str(jump_value)
 
+
 class PathFinder:
 	var came_from:Array
 	var width:int
 	var height:int
 	var goal:PathFinderNode
 	var graph:TileMap
+	var success:bool
+
 	
 	func _init(graph:TileMap, start:Vector2, ggoal:Vector2, width:int, height:int):
 		assert start.x < width && start.x >= 0 && start.y < height && start.y >= 0
@@ -72,6 +90,7 @@ class PathFinder:
 		self.graph = graph
 		self.width = width
 		self.height = height
+		success = false
 		#warning-ignore:unused_variable
 		var frontier:PriorityQueue = PriorityQueue.new()
 		var start_node:PathFinderNode = make_new_node(start.x, start.y, 0)
@@ -93,6 +112,7 @@ class PathFinder:
 			
 			if current.xy == self.goal.xy:
 				self.goal = current
+				success = true
 				break
 				
 			for next in neighbours(current):
@@ -103,12 +123,15 @@ class PathFinder:
 				if next.xy == self.goal.xy:
 					print("Found the goal")
 		print()
+
 	
 	func make_new_node(x:int, y:int, jv:int) -> PathFinderNode:
 		return PathFinderNode.new((y * width) + x, jv)
+
 	
 	func make_new_nodev(xy:Vector2, jv:int) -> PathFinderNode:
 		return PathFinderNode.new(int(xy.y) * width + int(xy.x), jv)
+
 	
 	func distance(a:PathFinderNode, b:PathFinderNode) ->  int:
 		var distance:int = 0
@@ -117,6 +140,7 @@ class PathFinder:
 		#warning-ignore:narrowing_conversion
 		distance += abs((a.xy >> int(log(width) / log(2))) - (b.xy >> int(log(width) / log(2))))
 		return distance
+
 	
 	func heuristic(next:PathFinderNode) -> int:
 		var cost:int = 0
@@ -125,6 +149,7 @@ class PathFinder:
 		#warning-ignore:narrowing_conversion
 		cost += abs((next.xy >> int(log(width) / log(2))) - (goal.xy >> int(log(width) / log(2))))
 		return cost
+
 	
 	func neighbours(node:PathFinderNode) -> Array:
 		var neighbours:Array = []
@@ -148,6 +173,7 @@ class PathFinder:
 			if is_node_on_floor(neighbour) == true:
 				neighbour.jump_value = 0
 		return neighbours
+
 	
 	func is_tile_on_floor(position:Vector2) -> bool:
 		assert position.x >= 0 && position.x < width && position.y >= 0 && position.y < height
@@ -155,8 +181,11 @@ class PathFinder:
 			return true
 		return false
 	
+	
 	func is_node_on_floor(node:PathFinderNode):
 		return is_tile_on_floor(Vector2(node.xy % width, node.xy / width))
 		
+	
+	
 	func next_even(number:int) -> int:
 		return number + 1 if (number + 1) % 2 == 0 else number + 2

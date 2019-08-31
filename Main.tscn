@@ -24,8 +24,6 @@ position = Vector2( 550.576, 72.9869 )
 script = ExtResource( 5 )
 WIDTH = 31
 HEIGHT = 18
-START = Vector2( 4, 10 )
-GOAL = Vector2( 15, 4 )
 
 [node name="KinematicPlayer" parent="TileMap/CPUController" instance=ExtResource( 4 )]
 position = Vector2( 120.587, 163.427 )
