@@ -14,10 +14,10 @@ func find_path():
 	var pf = PathFinder.new(get_parent(), start, goal, WIDTH, HEIGHT)
 	var next_step:PathFinderNode = pf.goal
 	path.append(pf.goal)
-	if pf.success == false:
-		update()
-		return
-	while next_step.xy != -1:
+	# if pf.success == false:
+	# 	update()
+	# 	return
+	while next_step != null and next_step.xy != -1:
 		path.append(next_step)
 		next_step = pf.came_from[next_step.xy][next_step.jump_value]
 	for i in range(1, path.size()):
@@ -46,7 +46,7 @@ class PriorityQueue:
 	
 	
 	func poll():
-		assert data.size() > 0
+		# assert data.size() > 0
 		var remove:int = priority.find(priority.min())
 		var polled = data[remove]
 		data.remove(remove)
@@ -55,7 +55,7 @@ class PriorityQueue:
 	
 	
 	func peek():
-		assert data.size() > 0
+		# assert data.size() > 0
 		var remove:int = priority.find(priority.min())
 		var polled = data[remove]
 		return polled
@@ -85,8 +85,8 @@ class PathFinder:
 
 	
 	func _init(graph:TileMap, start:Vector2, ggoal:Vector2, width:int, height:int):
-		assert start.x < width && start.x >= 0 && start.y < height && start.y >= 0
-		assert ggoal.x < width && ggoal.x >= 0 && ggoal.y < height && ggoal.y >= 0
+		# assert start.x < width && start.x >= 0 && start.y < height && start.y >= 0
+		# assert ggoal.x < width && ggoal.x >= 0 && ggoal.y < height && ggoal.y >= 0
 		self.graph = graph
 		self.width = width
 		self.height = height
@@ -108,6 +108,7 @@ class PathFinder:
 		cost_so_far[int(start.y) << int(log(width) / (log(2))) | int(start.x)] = 0
 		
 		while frontier.data.size() > 0:
+			# print(frontier.data)
 			var current:PathFinderNode = frontier.poll()
 			
 			if current.xy == self.goal.xy:
@@ -115,6 +116,7 @@ class PathFinder:
 				success = true
 				break
 				
+			#print("Looking at current %d" % current.xy)
 			for next in neighbours(current):
 				if came_from[next.xy][next.jump_value] == null:
 					var priority = heuristic(next)
@@ -122,7 +124,6 @@ class PathFinder:
 					came_from[next.xy][next.jump_value] = current
 				if next.xy == self.goal.xy:
 					print("Found the goal")
-		print()
 
 	
 	func make_new_node(x:int, y:int, jv:int) -> PathFinderNode:
@@ -154,20 +155,21 @@ class PathFinder:
 	func neighbours(node:PathFinderNode) -> Array:
 		var neighbours:Array = []
 		var tpos:Vector2 = Vector2(node.xy % width, node.xy / width)
-		if node.jump_value % 2 == 0 && graph.get_cellv(tpos + Vector2(1, 0)) == 0 && (tpos + Vector2(1, 0)).x < width:
+		if node.jump_value % 2 == 0 && graph.get_cellv(tpos + Vector2.RIGHT) == 0 && (tpos + Vector2.RIGHT).x < width:
 			# add a new node to the right
-			neighbours.append(make_new_nodev(tpos + Vector2(1, 0), node.jump_value + 1))
-		if node.jump_value % 2 == 0 && graph.get_cellv(tpos + Vector2(-1, 0)) == 0 && (tpos + Vector2(-1, 0)).x >= 0:
+			neighbours.append(make_new_nodev(tpos + Vector2.RIGHT, node.jump_value + 1))
+		if node.jump_value % 2 == 0 && graph.get_cellv(tpos + Vector2.LEFT) == 0 && (tpos + Vector2.LEFT).x >= 0:
 			# add a new node to the left
-			neighbours.append(make_new_nodev(tpos + Vector2(-1, 0), node.jump_value + 1))
-		if graph.get_cellv(tpos + Vector2(0, 1)) == 0 && (tpos + Vector2(0, 1)).y < height:
+			neighbours.append(make_new_nodev(tpos + Vector2.LEFT, node.jump_value + 1))
+		if graph.get_cellv(tpos + Vector2.UP) == 0 && (tpos + Vector2.UP).y < height:
 			# add a new node to the bottom
-			neighbours.append(make_new_nodev(tpos + Vector2(0, 1),
-				node.jump_value + 1 if (node.jump_value + 1) % 2 == 0 else node.jump_value + 2))
-		if (graph.get_cellv(tpos + Vector2(0, -1)) == 0 && (tpos + Vector2(0, -1)).y >= 0 &&
-			next_even(node.jump_value + 2) <= MAX_JUMP):
+			neighbours.append(make_new_nodev(tpos + Vector2.UP, MAX_JUMP))
+				#node.jump_value #+ 1))
+				#+ 1 if (node.jump_value + 1) % 2 == 0 else node.jump_value + 2))
+		if (graph.get_cellv(tpos + Vector2.DOWN) == 0 && (tpos + Vector2.DOWN).y >= 0 &&
+			next_even(node.jump_value + 1) <= MAX_JUMP):
 			# add a new node to the top
-			neighbours.append(make_new_nodev(tpos + Vector2(0, -1),
+			neighbours.append(make_new_nodev(tpos + Vector2.DOWN,
 				node.jump_value + 1 if (node.jump_value + 1) % 2 == 0 else node.jump_value + 2))
 		for neighbour in neighbours:
 			if is_node_on_floor(neighbour) == true:
@@ -176,7 +178,7 @@ class PathFinder:
 
 	
 	func is_tile_on_floor(position:Vector2) -> bool:
-		assert position.x >= 0 && position.x < width && position.y >= 0 && position.y < height
+		# assert position.x >= 0 && position.x < width && position.y >= 0 && position.y < height
 		if graph.get_cellv(position + Vector2(0, 1)) == 1:
 			return true
 		return false

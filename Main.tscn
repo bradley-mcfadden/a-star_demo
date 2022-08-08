@@ -45,10 +45,10 @@ script = ExtResource( 6 )
 
 [node name="Start" type="ColorRect" parent="TileMap"]
 anchor_right = 1.0
-margin_left = 365.676
-margin_top = 67.3499
-margin_right = 397.676
-margin_bottom = 99.3499
+margin_left = 479.0
+margin_top = 191.0
+margin_right = 511.0
+margin_bottom = 223.0
 grow_horizontal = 2
 grow_vertical = 2
 hint_tooltip = "Start"
